@@ -27,9 +27,10 @@ final class SupabaseWorkoutRepository: WorkoutRepository {
     }
 
     func createWorkout(userID: UUID, name: String, notes: String?) async throws -> Workout {
+        let payload = WorkoutInsertPayload(user_id: userID, name: name, notes: notes)
         let inserted: WorkoutRow = try await service.client
             .from("workouts")
-            .insert(["user_id": userID.uuidString, "name": name, "notes": notes as Any])
+            .insert(payload)
             .select()
             .single()
             .execute()
@@ -38,9 +39,10 @@ final class SupabaseWorkoutRepository: WorkoutRepository {
     }
 
     func updateWorkout(_ workout: Workout) async throws -> Workout {
+        let payload = WorkoutUpdatePayload(name: workout.name, notes: workout.notes)
         let updated: WorkoutRow = try await service.client
             .from("workouts")
-            .update(["name": workout.name, "notes": workout.notes as Any])
+            .update(payload)
             .eq("id", value: workout.id.uuidString)
             .select()
             .single()
@@ -87,4 +89,15 @@ final class SupabaseWorkoutRepository: WorkoutRepository {
             .eq("id", value: exerciseID.uuidString)
             .execute()
     }
+}
+
+private struct WorkoutInsertPayload: Encodable {
+    let user_id: UUID
+    let name: String
+    let notes: String?
+}
+
+private struct WorkoutUpdatePayload: Encodable {
+    let name: String
+    let notes: String?
 }
