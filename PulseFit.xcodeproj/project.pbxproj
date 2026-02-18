@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FEF302042F4620A800C8927F /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302032F4620A800C8927F /* Auth */; };
+		FEF302062F4620A800C8927F /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302052F4620A800C8927F /* PostgREST */; };
+		FEF302082F4620A800C8927F /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302072F4620A800C8927F /* Realtime */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		FEF301F42F46203500C8927F /* PulseFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PulseFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEF302082F4620A800C8927F /* Realtime in Frameworks */,
+				FEF302062F4620A800C8927F /* PostgREST in Frameworks */,
+				FEF302042F4620A800C8927F /* Auth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +74,9 @@
 			);
 			name = PulseFit;
 			packageProductDependencies = (
+				FEF302032F4620A800C8927F /* Auth */,
+				FEF302052F4620A800C8927F /* PostgREST */,
+				FEF302072F4620A800C8927F /* Realtime */,
 			);
 			productName = PulseFit;
 			productReference = FEF301F42F46203500C8927F /* PulseFit.app */;
@@ -94,6 +106,9 @@
 			);
 			mainGroup = FEF301EB2F46203500C8927F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = FEF301F52F46203500C8927F /* Products */;
 			projectDirPath = "";
@@ -251,6 +266,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QL9MEXY924;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -282,6 +298,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QL9MEXY924;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -328,6 +345,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase-community/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FEF302032F4620A800C8927F /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		FEF302052F4620A800C8927F /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		FEF302072F4620A800C8927F /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FEF301EC2F46203500C8927F /* Project object */;
 }
