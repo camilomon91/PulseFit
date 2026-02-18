@@ -1,21 +1,22 @@
-//
-//  ContentView.swift
-//  PulseFit
-//
-//  Created by Camilo Montero on 2026-02-18.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            LinearGradient(colors: [.indigo, .purple, .black], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("PulseFit")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                Text("Clean architecture scaffold generated. Open the project navigator to add new folders/files to the target.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(20)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .padding()
         }
-        .padding()
     }
 }
 
