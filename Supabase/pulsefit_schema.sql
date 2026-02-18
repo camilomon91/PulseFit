@@ -75,25 +75,30 @@ alter table public.exercise_sets enable row level security;
 alter table public.meal_logs enable row level security;
 
 -- Workouts policies
-create policy if not exists "workouts_select_own"
+drop policy if exists "workouts_select_own" on public.workouts;
+create policy "workouts_select_own"
   on public.workouts for select
   using (auth.uid() = user_id);
 
-create policy if not exists "workouts_insert_own"
+drop policy if exists "workouts_insert_own" on public.workouts;
+create policy "workouts_insert_own"
   on public.workouts for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "workouts_update_own"
+drop policy if exists "workouts_update_own" on public.workouts;
+create policy "workouts_update_own"
   on public.workouts for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "workouts_delete_own"
+drop policy if exists "workouts_delete_own" on public.workouts;
+create policy "workouts_delete_own"
   on public.workouts for delete
   using (auth.uid() = user_id);
 
 -- Exercises policies (owned via parent workout)
-create policy if not exists "exercises_select_own"
+drop policy if exists "exercises_select_own" on public.exercises;
+create policy "exercises_select_own"
   on public.exercises for select
   using (
     exists (
@@ -102,7 +107,8 @@ create policy if not exists "exercises_select_own"
     )
   );
 
-create policy if not exists "exercises_insert_own"
+drop policy if exists "exercises_insert_own" on public.exercises;
+create policy "exercises_insert_own"
   on public.exercises for insert
   with check (
     exists (
@@ -111,7 +117,8 @@ create policy if not exists "exercises_insert_own"
     )
   );
 
-create policy if not exists "exercises_update_own"
+drop policy if exists "exercises_update_own" on public.exercises;
+create policy "exercises_update_own"
   on public.exercises for update
   using (
     exists (
@@ -126,7 +133,8 @@ create policy if not exists "exercises_update_own"
     )
   );
 
-create policy if not exists "exercises_delete_own"
+drop policy if exists "exercises_delete_own" on public.exercises;
+create policy "exercises_delete_own"
   on public.exercises for delete
   using (
     exists (
@@ -136,43 +144,52 @@ create policy if not exists "exercises_delete_own"
   );
 
 -- Meals policies
-create policy if not exists "meals_select_own"
+drop policy if exists "meals_select_own" on public.meals;
+create policy "meals_select_own"
   on public.meals for select
   using (auth.uid() = user_id);
 
-create policy if not exists "meals_insert_own"
+drop policy if exists "meals_insert_own" on public.meals;
+create policy "meals_insert_own"
   on public.meals for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "meals_update_own"
+drop policy if exists "meals_update_own" on public.meals;
+create policy "meals_update_own"
   on public.meals for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "meals_delete_own"
+drop policy if exists "meals_delete_own" on public.meals;
+create policy "meals_delete_own"
   on public.meals for delete
   using (auth.uid() = user_id);
 
 -- Check-ins policies
-create policy if not exists "check_ins_select_own"
+drop policy if exists "check_ins_select_own" on public.check_ins;
+create policy "check_ins_select_own"
   on public.check_ins for select
   using (auth.uid() = user_id);
 
-create policy if not exists "check_ins_insert_own"
+drop policy if exists "check_ins_insert_own" on public.check_ins;
+create policy "check_ins_insert_own"
   on public.check_ins for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "check_ins_update_own"
+drop policy if exists "check_ins_update_own" on public.check_ins;
+create policy "check_ins_update_own"
   on public.check_ins for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "check_ins_delete_own"
+drop policy if exists "check_ins_delete_own" on public.check_ins;
+create policy "check_ins_delete_own"
   on public.check_ins for delete
   using (auth.uid() = user_id);
 
 -- Exercise sets policies (owned via check-in)
-create policy if not exists "exercise_sets_select_own"
+drop policy if exists "exercise_sets_select_own" on public.exercise_sets;
+create policy "exercise_sets_select_own"
   on public.exercise_sets for select
   using (
     exists (
@@ -181,7 +198,8 @@ create policy if not exists "exercise_sets_select_own"
     )
   );
 
-create policy if not exists "exercise_sets_insert_own"
+drop policy if exists "exercise_sets_insert_own" on public.exercise_sets;
+create policy "exercise_sets_insert_own"
   on public.exercise_sets for insert
   with check (
     exists (
@@ -190,7 +208,8 @@ create policy if not exists "exercise_sets_insert_own"
     )
   );
 
-create policy if not exists "exercise_sets_update_own"
+drop policy if exists "exercise_sets_update_own" on public.exercise_sets;
+create policy "exercise_sets_update_own"
   on public.exercise_sets for update
   using (
     exists (
@@ -205,7 +224,8 @@ create policy if not exists "exercise_sets_update_own"
     )
   );
 
-create policy if not exists "exercise_sets_delete_own"
+drop policy if exists "exercise_sets_delete_own" on public.exercise_sets;
+create policy "exercise_sets_delete_own"
   on public.exercise_sets for delete
   using (
     exists (
@@ -215,19 +235,23 @@ create policy if not exists "exercise_sets_delete_own"
   );
 
 -- Meal logs policies
-create policy if not exists "meal_logs_select_own"
+drop policy if exists "meal_logs_select_own" on public.meal_logs;
+create policy "meal_logs_select_own"
   on public.meal_logs for select
   using (auth.uid() = user_id);
 
-create policy if not exists "meal_logs_insert_own"
+drop policy if exists "meal_logs_insert_own" on public.meal_logs;
+create policy "meal_logs_insert_own"
   on public.meal_logs for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "meal_logs_update_own"
+drop policy if exists "meal_logs_update_own" on public.meal_logs;
+create policy "meal_logs_update_own"
   on public.meal_logs for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "meal_logs_delete_own"
+drop policy if exists "meal_logs_delete_own" on public.meal_logs;
+create policy "meal_logs_delete_own"
   on public.meal_logs for delete
   using (auth.uid() = user_id);

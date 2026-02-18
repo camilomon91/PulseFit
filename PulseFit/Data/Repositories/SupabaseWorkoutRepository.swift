@@ -1,6 +1,5 @@
 import Foundation
 import Supabase
-import Combine
 
 final class SupabaseWorkoutRepository: WorkoutRepository {
     private let service: SupabaseService

@@ -9,21 +9,66 @@ final class SupabaseAuthRepository: AuthRepository {
     }
 
     func currentSession() async throws -> AuthSession? {
-        guard let session = try await service.client.auth.session else { return nil }
-        return AuthSession(userID: session.user.id, email: session.user.email ?? "", accessToken: session.accessToken)
+        do {
+            let session = try await service.client.auth.session
+            return AuthSession(
+                userID: session.user.id,
+                email: session.user.email ?? "",
+                accessToken: session.accessToken
+            )
+        } catch {
+            return nil
+        }
     }
 
     func signIn(email: String, password: String) async throws -> AuthSession {
         let response = try await service.client.auth.signIn(email: email, password: password)
-        return AuthSession(userID: response.user.id, email: response.user.email ?? email, accessToken: response.accessToken)
+        if let session = response.session {
+            return AuthSession(
+                userID: session.user.id,
+                email: session.user.email ?? email,
+                accessToken: session.accessToken
+            )
+        }
+
+        let session = try await service.client.auth.session
+        return AuthSession(
+            userID: session.user.id,
+            email: session.user.email ?? email,
+            accessToken: session.accessToken
+        )
     }
 
     func signUp(email: String, password: String) async throws -> AuthSession {
         let response = try await service.client.auth.signUp(email: email, password: password)
-        return AuthSession(userID: response.user.id, email: response.user.email ?? email, accessToken: response.accessToken)
+
+        if let session = response.session {
+            return AuthSession(
+                userID: session.user.id,
+                email: session.user.email ?? email,
+                accessToken: session.accessToken
+            )
+        }
+
+        if let user = response.user {
+            return AuthSession(userID: user.id, email: user.email ?? email, accessToken: "")
+        }
+
+        throw AuthRepositoryError.missingAuthIdentity
     }
 
     func signOut() async throws {
         try await service.client.auth.signOut()
+    }
+}
+
+private enum AuthRepositoryError: LocalizedError {
+    case missingAuthIdentity
+
+    var errorDescription: String? {
+        switch self {
+        case .missingAuthIdentity:
+            return "Supabase did not return a user or session."
+        }
     }
 }
