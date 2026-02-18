@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct NutritionView: View {
     @StateObject var viewModel: NutritionViewModel

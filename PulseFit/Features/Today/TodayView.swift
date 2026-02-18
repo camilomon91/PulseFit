@@ -23,7 +23,7 @@ struct TodayView: View {
                             .foregroundStyle(.white)
                     }
 
-                    if let activeSession {
+                    if let activeSession = viewModel.activeSession {
                         NavigationLink {
                             ActiveSessionView(viewModel: SessionViewModel(appState: appState, sessionsRepository: appState.sessionsRepository, exercisesRepository: appState.exercisesRepository, sessionID: activeSession.id))
                         } label: {

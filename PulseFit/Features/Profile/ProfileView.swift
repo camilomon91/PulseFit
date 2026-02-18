@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ProfileView: View {
     @StateObject var viewModel: ProfileViewModel

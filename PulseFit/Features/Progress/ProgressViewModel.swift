@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 struct WeeklyPoint: Identifiable {
     let id = UUID()

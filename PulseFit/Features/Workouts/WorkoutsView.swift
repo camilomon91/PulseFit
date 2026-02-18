@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct WorkoutsView: View {
     @StateObject var viewModel: WorkoutsViewModel
