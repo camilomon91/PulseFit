@@ -1,17 +1,13 @@
-//
-//  PulseFitApp.swift
-//  PulseFit
-//
-//  Created by Camilo Montero on 2026-02-18.
-//
-
 import SwiftUI
 
 @main
 struct PulseFitApp: App {
+    @StateObject private var appState = AppState()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
+                .environmentObject(appState)
         }
     }
 }
