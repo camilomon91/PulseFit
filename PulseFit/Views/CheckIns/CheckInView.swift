@@ -7,6 +7,10 @@ struct CheckInView: View {
 
     @State private var selectedWorkoutId: UUID?
 
+    private var isWorkoutActive: Bool {
+        controller.activeCheckIn != nil
+    }
+
     private var todayMacros: MacroSummary {
         mealController.macroSummary(for: mealController.logsForToday())
     }
@@ -26,43 +30,57 @@ struct CheckInView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                summaryCards
-
-                Picker("Workout", selection: $selectedWorkoutId) {
-                    Text("Select workout").tag(UUID?.none)
-                    ForEach(workoutController.workouts) { workout in
-                        Text(workout.name).tag(Optional(workout.id))
-                    }
-                }
-                .pickerStyle(.menu)
-                .padding(.horizontal, 2)
-                .padding(.vertical, 2)
-                .neonCard()
-
-                if controller.activeCheckIn == nil {
-                    Button("Start Check-In") {
-                        guard let selectedWorkoutId else { return }
-                        Task { await controller.startCheckIn(workoutId: selectedWorkoutId) }
-                    }
-                    .neonPrimaryButton()
-                } else {
+            Group {
+                if isWorkoutActive {
                     ActiveWorkoutView(workoutController: workoutController, controller: controller)
-                    Button("Finish Session") { Task { await controller.finishCheckIn() } }
-                        .neonPrimaryButton()
-                }
+                } else {
+                    VStack(spacing: 16) {
+                        summaryCards
+                        workoutPicker
 
-                Spacer()
+                        Button("Start Check-In") {
+                            guard let selectedWorkoutId else { return }
+                            Task { await controller.startCheckIn(workoutId: selectedWorkoutId) }
+                        }
+                        .disabled(selectedWorkoutId == nil)
+                        .neonPrimaryButton()
+
+                        Spacer()
+                    }
+                    .padding()
+                }
             }
-            .padding()
             .navigationTitle("Gym")
             .neonScreenBackground()
+            .safeAreaInset(edge: .bottom) {
+                if isWorkoutActive {
+                    Button("Finish Session") {
+                        Task { await controller.finishCheckIn() }
+                    }
+                    .neonPrimaryButton()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .background(.clear)
+                }
+            }
             .task {
                 await workoutController.loadWorkouts()
                 await controller.loadHistory()
                 await mealController.loadMeals()
             }
         }
+    }
+
+    private var workoutPicker: some View {
+        Picker("Workout", selection: $selectedWorkoutId) {
+            Text("Select workout").tag(UUID?.none)
+            ForEach(workoutController.workouts) { workout in
+                Text(workout.name).tag(Optional(workout.id))
+            }
+        }
+        .pickerStyle(.menu)
+        .padding(12)
+        .neonCard()
     }
 
     private var summaryCards: some View {
@@ -89,9 +107,8 @@ struct CheckInView: View {
                     .font(.headline)
             }
         }
-        .padding(.horizontal, 2)
-                .padding(.vertical, 2)
-                .neonCard()
+        .padding(12)
+        .neonCard()
     }
 
     private func macroPill(label: String, value: Int, color: Color) -> some View {
@@ -231,8 +248,7 @@ private struct ActiveWorkoutView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 2)
-                .padding(.vertical, 2)
+                .padding(12)
                 .neonCard()
                 .listRowBackground(Color.clear)
             }
@@ -241,7 +257,6 @@ private struct ActiveWorkoutView: View {
             Text("No exercises found for this workout.")
         }
     }
-
 
     private func elapsedSince(_ date: Date?, now: Date) -> Int? {
         guard let date else { return nil }

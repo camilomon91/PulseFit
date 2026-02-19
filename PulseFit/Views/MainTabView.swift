@@ -12,32 +12,27 @@ struct MainTabView: View {
     ]
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch appController.selectedTab {
-                case 0:
-                    CheckInView(
-                        workoutController: appController.workoutController,
-                        controller: appController.checkInController,
-                        mealController: appController.mealController
-                    )
-                case 1:
-                    WorkoutsView(controller: appController.workoutController)
-                case 2:
-                    MealsView(controller: appController.mealController, checkInController: appController.checkInController)
-                case 3:
-                    ProgressDashboardView(controller: appController.progressController)
-                default:
-                    SettingsView(authController: appController.authController)
-                }
+        Group {
+            switch appController.selectedTab {
+            case 0:
+                CheckInView(
+                    workoutController: appController.workoutController,
+                    controller: appController.checkInController,
+                    mealController: appController.mealController
+                )
+            case 1:
+                WorkoutsView(controller: appController.workoutController)
+            case 2:
+                MealsView(controller: appController.mealController, checkInController: appController.checkInController)
+            case 3:
+                ProgressDashboardView(controller: appController.progressController)
+            default:
+                SettingsView(authController: appController.authController)
             }
-            .neonScreenBackground()
-            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 84) }
-
-            NeonTabBar(selected: $appController.selectedTab, tabs: tabs) {
-                // Center action – feel free to change (e.g., open add-workout sheet)
-                appController.selectedTab = 0
-            }
+        }
+        .neonScreenBackground()
+        .safeAreaInset(edge: .bottom) {
+            NeonTabBar(selected: $appController.selectedTab, tabs: tabs)
         }
         .task { await appController.refreshAll() }
     }
@@ -46,38 +41,16 @@ struct MainTabView: View {
 private struct NeonTabBar: View {
     @Binding var selected: Int
     let tabs: [TabItem]
-    var centerAction: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
-            tabButton(tabs[0])
-            tabButton(tabs[1])
-
-            Spacer(minLength: 0)
-
-            // Center +
-            Button(action: centerAction) {
-                Image(systemName: "plus")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.black)
-                    .frame(width: 56, height: 56)
-                    .background(
-                        Circle()
-                            .fill(Neon.neon)
-                            .shadow(color: Neon.neon.opacity(0.25), radius: 18, x: 0, y: 10)
-                    )
+            ForEach(tabs, id: \.index) { tab in
+                tabButton(tab)
             }
-            .offset(y: -18)
-
-            Spacer(minLength: 0)
-
-            tabButton(tabs[2])
-            tabButton(tabs[3])
-            tabButton(tabs[4])
         }
         .padding(.horizontal, 12)
-        .padding(.top, 14)
-        .padding(.bottom, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 14)
         .background(
             RoundedRectangle(cornerRadius: 26, style: .continuous)
                 .fill(.ultraThinMaterial)
