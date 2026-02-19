@@ -6,20 +6,25 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Text("Signed in as")
-                    .font(.headline)
-                Text(authController.email.isEmpty ? "Current user" : authController.email)
-                    .foregroundStyle(.secondary)
+            VStack(spacing: 12) {
+                VStack(spacing: 6) {
+                    Text("Signed in as")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(authController.email.isEmpty ? "Current user" : authController.email)
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                }
 
                 Button("Sign Out") {
                     Task { await authController.signOut() }
                 }
-                .buttonStyle(.borderedProminent)
+                .neonPrimaryButton()
             }
-            .padding()
-            .glassCard()
-            .padding()
+            .padding(16)
+            .neonCard()
+            .padding(16)
+            .neonScreenBackground()
             .navigationTitle("Account")
         }
     }

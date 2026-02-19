@@ -19,16 +19,14 @@ struct ProgressDashboardView: View {
 
                     calendarCard
                 }
-                .padding()
+                .padding(16)
+                .padding(.top, 8)
             }
+            .neonScreenBackground()
             .navigationTitle("Progress")
             .sheet(item: Binding(
-                get: {
-                    selectedDay.map { CalendarDay(date: $0) }
-                },
-                set: { value in
-                    selectedDay = value?.date
-                }
+                get: { selectedDay.map { CalendarDay(date: $0) } },
+                set: { value in selectedDay = value?.date }
             )) { day in
                 DayDetailSheet(
                     day: day.date,
@@ -41,69 +39,118 @@ struct ProgressDashboardView: View {
 
     private var calendarCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 10) {
                 Button {
                     selectedMonth = calendar.date(byAdding: .month, value: -1, to: selectedMonth) ?? selectedMonth
                 } label: {
                     Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .frame(width: 34, height: 34)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.white.opacity(0.06))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Neon.stroke, lineWidth: 1)
+                                )
+                        )
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
-                Text(monthTitle(for: selectedMonth)).font(.headline)
+
+                Text(monthTitle(for: selectedMonth))
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+
                 Spacer()
 
                 Button {
                     selectedMonth = calendar.date(byAdding: .month, value: 1, to: selectedMonth) ?? selectedMonth
                 } label: {
                     Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .frame(width: 34, height: 34)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.white.opacity(0.06))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Neon.stroke, lineWidth: 1)
+                                )
+                        )
                 }
+                .buttonStyle(.plain)
             }
 
             let days = daysForMonth(selectedMonth)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
                 ForEach(calendar.shortWeekdaySymbols, id: \.self) { symbol in
-                    Text(symbol).font(.caption).foregroundStyle(.secondary)
+                    Text(symbol)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Color.white.opacity(0.55))
                 }
 
                 ForEach(days) { day in
                     if let date = day.date {
                         let hasCheckIn = !controller.checkIns(on: date).isEmpty
+                        let dayNum = calendar.component(.day, from: date)
+
                         Button {
                             selectedDay = date
                         } label: {
-                            VStack(spacing: 4) {
-                                Text("\(calendar.component(.day, from: date))")
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity)
+                            ZStack {
                                 Circle()
-                                    .fill(hasCheckIn ? Color.green : Color.clear)
-                                    .frame(width: 6, height: 6)
+                                    .fill(hasCheckIn ? Neon.neon.opacity(0.16) : Color.white.opacity(0.04))
+                                    .overlay(
+                                        Circle()
+                                            .stroke(hasCheckIn ? Neon.neon.opacity(0.45) : Neon.stroke, lineWidth: 1)
+                                    )
+
+                                Text("\(dayNum)")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.white.opacity(0.95))
                             }
-                            .padding(.vertical, 6)
-                            .background(hasCheckIn ? Color.green.opacity(0.15) : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .frame(height: 38)
                         }
                         .buttonStyle(.plain)
                     } else {
-                        Color.clear.frame(height: 32)
+                        Color.clear.frame(height: 38)
                     }
                 }
             }
 
             Text("Tap a day to view gym session details")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.55))
         }
-        .glassCard()
+        .neonCard()
     }
 
     private func metricCard(title: String, value: String, icon: String) -> some View {
-        HStack {
-            Label(title, systemImage: icon)
+        HStack(spacing: 12) {
+            Circle()
+                .fill(Neon.neon.opacity(0.18))
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Neon.neon)
+                )
+                .frame(width: 36, height: 36)
+
+            Text(title)
+                .foregroundStyle(Color.white.opacity(0.90))
+
             Spacer()
-            Text(value).font(.headline)
+
+            Text(value)
+                .font(.headline)
+                .foregroundStyle(Color.white)
         }
-        .glassCard()
+        .neonCard()
     }
 
     private func monthTitle(for date: Date) -> String {
@@ -148,40 +195,4 @@ private struct CalendarCellDay: Identifiable {
 private struct CalendarDay: Identifiable {
     let id = UUID()
     let date: Date
-}
-
-private struct DayDetailSheet: View {
-    let day: Date
-    let checkIns: [GymCheckIn]
-    let workoutsById: [UUID: Workout]
-
-    var body: some View {
-        NavigationStack {
-            List {
-                if checkIns.isEmpty {
-                    Text("No gym activity recorded for this day.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(checkIns) { checkIn in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(workoutsById[checkIn.workoutId]?.name ?? "Workout")
-                                .font(.headline)
-                            Text("Started: \(checkIn.startedAt.formatted(date: .omitted, time: .shortened))")
-                                .font(.subheadline)
-                            if let completedAt = checkIn.completedAt {
-                                Text("Finished: \(completedAt.formatted(date: .omitted, time: .shortened))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            } else {
-                                Text("Session not finished")
-                                    .font(.caption)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationTitle(day.formatted(date: .abbreviated, time: .omitted))
-        }
-    }
 }

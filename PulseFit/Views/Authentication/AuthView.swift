@@ -6,34 +6,38 @@ struct AuthView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [.blue.opacity(0.7), .purple.opacity(0.6), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
-                .ignoresSafeArea()
+            Neon.backgroundGradient.ignoresSafeArea()
 
             VStack(spacing: 16) {
                 Text("PulseFit")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.white)
 
                 VStack(spacing: 12) {
                     TextField("Email", text: $authController.email)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.emailAddress)
+                        .textFieldStyle(.roundedBorder)
+
                     SecureField("Password", text: $authController.password)
+                        .textFieldStyle(.roundedBorder)
 
                     if let error = authController.errorMessage {
-                        Text(error).foregroundStyle(.red)
+                        Text(error).font(.caption).foregroundStyle(.red)
                     }
 
-                    HStack {
+                    HStack(spacing: 12) {
                         Button("Sign In") { Task { await authController.signIn() } }
-                            .buttonStyle(.borderedProminent)
+                            .neonPrimaryButton()
+
                         Button("Sign Up") { Task { await authController.signUp() } }
-                            .buttonStyle(.bordered)
+                            .neonSecondaryButton()
                     }
                 }
-                .glassCard()
-                .padding(.horizontal)
+                .neonCard()
+                .padding(.horizontal, 16)
             }
         }
+        .tint(Neon.neon)
     }
 }
