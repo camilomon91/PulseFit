@@ -11,6 +11,8 @@ struct MainTabView: View {
         TabItem(index: 4, title: "Account", systemImage: "person.crop.circle")
     ]
 
+    private let tabBarReservedHeight: CGFloat = 100
+
     var body: some View {
         Group {
             switch appController.selectedTab {
@@ -31,7 +33,8 @@ struct MainTabView: View {
             }
         }
         .neonScreenBackground()
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaPadding(.bottom, tabBarReservedHeight)
+        .overlay(alignment: .bottom) {
             NeonTabBar(selected: $appController.selectedTab, tabs: tabs)
         }
         .task { await appController.refreshAll() }

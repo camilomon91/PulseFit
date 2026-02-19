@@ -5,6 +5,7 @@ struct ProgressDashboardView: View {
 
     @State private var selectedMonth = Date()
     @State private var selectedDay: Date?
+    @State private var showSummaryMetrics = false
 
     private let calendar = Calendar.current
 
@@ -12,12 +13,8 @@ struct ProgressDashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
-                    metricCard(title: "Workouts Completed", value: "\(controller.snapshot.workoutsCompleted)", icon: "checkmark.circle.fill")
-                    metricCard(title: "Sets Logged", value: "\(controller.snapshot.setsLogged)", icon: "list.number")
-                    metricCard(title: "Volume", value: String(format: "%.0f kg", controller.snapshot.totalVolumeKg), icon: "scalemass")
-                    metricCard(title: "Meals Tracked", value: "\(controller.snapshot.mealsLogged)", icon: "fork.knife.circle")
-
                     calendarCard
+                    summaryMetricsCard
                 }
                 .padding(16)
                 .padding(.top, 8)
@@ -127,6 +124,31 @@ struct ProgressDashboardView: View {
                 .font(.caption)
                 .foregroundStyle(Color.white.opacity(0.55))
         }
+        .neonCard()
+    }
+
+
+    private var summaryMetricsCard: some View {
+        DisclosureGroup(isExpanded: $showSummaryMetrics) {
+            VStack(spacing: 10) {
+                metricCard(title: "Workouts Completed", value: "\(controller.snapshot.workoutsCompleted)", icon: "checkmark.circle.fill")
+                metricCard(title: "Sets Logged", value: "\(controller.snapshot.setsLogged)", icon: "list.number")
+                metricCard(title: "Volume", value: String(format: "%.0f kg", controller.snapshot.totalVolumeKg), icon: "scalemass")
+                metricCard(title: "Meals Tracked", value: "\(controller.snapshot.mealsLogged)", icon: "fork.knife.circle")
+            }
+            .padding(.top, 10)
+        } label: {
+            HStack {
+                Text("Summary Metrics")
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                Spacer()
+                Text(showSummaryMetrics ? "Hide" : "Show")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Neon.muted)
+            }
+        }
+        .tint(Neon.neon)
         .neonCard()
     }
 
