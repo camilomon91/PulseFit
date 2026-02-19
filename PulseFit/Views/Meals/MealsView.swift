@@ -44,8 +44,7 @@ struct MealsView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                List {
+            List {
                     Section("Today's Macro Graph") {
                         macroTotalRow(title: "Calories", value: todayMacroSummary.calories, maxValue: 3000, color: .purple)
                         macroTotalRow(title: "Protein", value: todayMacroSummary.protein, maxValue: 250, suffix: "g", color: .blue)
@@ -138,27 +137,22 @@ struct MealsView: View {
                             }
                         }
                     }
-                }
-                .listStyle(.insetGrouped)
-                .scrollContentBackground(.hidden)
-                .background(Color(uiColor: .systemGroupedBackground))
-
-                Button {
-                    showAddMealSheet = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.title2.bold())
-                        .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color.accentColor.gradient)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-                }
-                .padding(.trailing, 20)
-                .padding(.bottom, 20)
-                .accessibilityLabel("Add Meal")
             }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Meals")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showAddMealSheet = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(Neon.neon)
+                    }
+                    .accessibilityLabel("Add Meal")
+                }
+            }
             .task { await controller.loadMeals() }
             .refreshable { await controller.loadMeals() }
             .onChange(of: controller.errorMessage) { _, newValue in

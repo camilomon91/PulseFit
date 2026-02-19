@@ -60,6 +60,7 @@ struct CheckInView: View {
                     .neonPrimaryButton()
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
+                    .padding(.bottom, 12)
                     .background(.clear)
                 }
             }
@@ -148,7 +149,24 @@ private struct ActiveWorkoutView: View {
     var body: some View {
         if let workoutId = controller.activeCheckIn?.workoutId,
            let exercises = workoutController.exercisesByWorkout[workoutId] {
-            List(exercises) { exercise in
+            VStack(spacing: 12) {
+                TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                    let elapsed = max(0, Int(timeline.date.timeIntervalSince(controller.activeCheckIn?.startedAt ?? timeline.date)))
+
+                    HStack {
+                        Label("Workout Elapsed", systemImage: "timer")
+                            .foregroundStyle(Color.white.opacity(0.85))
+                        Spacer()
+                        Text(formattedClock(elapsed))
+                            .font(.headline)
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(12)
+                    .neonCard()
+                    .padding(.horizontal, 16)
+                }
+
+                List(exercises) { exercise in
                 VStack(alignment: .leading, spacing: 10) {
                     Text(exercise.name).font(.headline)
 
@@ -251,8 +269,9 @@ private struct ActiveWorkoutView: View {
                 .padding(12)
                 .neonCard()
                 .listRowBackground(Color.clear)
+                }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
         } else {
             Text("No exercises found for this workout.")
         }
