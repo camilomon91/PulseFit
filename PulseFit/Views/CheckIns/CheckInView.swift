@@ -80,7 +80,6 @@ struct CheckInView: View {
             }
         }
         .pickerStyle(.menu)
-        .padding(12)
         .neonCard()
     }
 

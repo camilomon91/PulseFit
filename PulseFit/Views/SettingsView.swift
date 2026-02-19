@@ -20,11 +20,10 @@ struct SettingsView: View {
                 }
                 .neonPrimaryButton()
             }
-            .padding(16)
             .neonCard()
-            .padding(16)
             .neonScreenBackground()
             .navigationTitle("Account")
         }
     }
 }
+
