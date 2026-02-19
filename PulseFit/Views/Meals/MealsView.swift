@@ -4,23 +4,9 @@ struct MealsView: View {
     @ObservedObject var controller: MealController
     @ObservedObject var checkInController: CheckInController
 
-    @State private var name = ""
-    @State private var caloriesText = "500"
-    @State private var proteinText = "30"
-    @State private var carbsText = "40"
-    @State private var fatText = "15"
     @State private var showingError = false
     @State private var loggingMealIds: Set<UUID> = []
     @State private var showAddMealSheet = false
-
-    private var trimmedName: String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var parsedCalories: Int { Int(caloriesText) ?? 0 }
-    private var parsedProtein: Int { Int(proteinText) ?? 0 }
-    private var parsedCarbs: Int { Int(carbsText) ?? 0 }
-    private var parsedFat: Int { Int(fatText) ?? 0 }
 
     private var mealsById: [UUID: Meal] {
         Dictionary(uniqueKeysWithValues: controller.meals.map { ($0.id, $0) })
@@ -60,62 +46,6 @@ struct MealsView: View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 List {
-                    Section("Add Meal") {
-                        TextField("Meal name", text: $name)
-
-                        HStack {
-                            Text("Calories")
-                            Spacer()
-                            TextField("0", text: $caloriesText)
-                                .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
-                                .frame(width: 100)
-                        }
-
-                        HStack {
-                            Text("Protein (g)")
-                            Spacer()
-                            TextField("0", text: $proteinText)
-                                .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
-                                .frame(width: 100)
-                        }
-
-                        HStack {
-                            Text("Carbs (g)")
-                            Spacer()
-                            TextField("0", text: $carbsText)
-                                .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
-                                .frame(width: 100)
-                        }
-
-                        HStack {
-                            Text("Fat (g)")
-                            Spacer()
-                            TextField("0", text: $fatText)
-                                .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
-                                .frame(width: 100)
-                        }
-
-                        Button("Save Meal") {
-                            Task {
-                                await controller.addMeal(
-                                    name: name,
-                                    calories: parsedCalories,
-                                    protein: parsedProtein,
-                                    carbs: parsedCarbs,
-                                    fat: parsedFat
-                                )
-                                if controller.errorMessage == nil {
-                                    name = ""
-                                }
-                            }
-                        }
-                        .disabled(trimmedName.isEmpty)
-                    }
-
                     Section("Today's Macro Graph") {
                         macroTotalRow(title: "Calories", value: todayMacroSummary.calories, maxValue: 3000, color: .purple)
                         macroTotalRow(title: "Protein", value: todayMacroSummary.protein, maxValue: 250, suffix: "g", color: .blue)
@@ -141,8 +71,11 @@ struct MealsView: View {
 
                     Section("Meals") {
                         if controller.meals.isEmpty {
-                            Text("No meals yet. Add your first meal above.")
-                                .foregroundStyle(.secondary)
+                            ContentUnavailableView(
+                                "No Meals Yet",
+                                systemImage: "fork.knife",
+                                description: Text("Tap + to add your first meal.")
+                            )
                         } else {
                             ForEach(controller.meals) { meal in
                                 HStack {
@@ -206,6 +139,9 @@ struct MealsView: View {
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .background(Color(uiColor: .systemGroupedBackground))
 
                 Button {
                     showAddMealSheet = true
@@ -214,9 +150,9 @@ struct MealsView: View {
                         .font(.title2.bold())
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
-                        .background(Color.accentColor)
+                        .background(Color.accentColor.gradient)
                         .clipShape(Circle())
-                        .shadow(radius: 4)
+                        .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
                 }
                 .padding(.trailing, 20)
                 .padding(.bottom, 20)
@@ -237,6 +173,7 @@ struct MealsView: View {
             }
             .sheet(isPresented: $showAddMealSheet) {
                 AddMealSheet(controller: controller)
+                    .presentationDetents([.medium, .large])
             }
         }
     }

@@ -3,38 +3,39 @@ import Combine
 
 struct WorkoutsView: View {
     @ObservedObject var controller: WorkoutController
-    @State private var newWorkoutName = ""
     @State private var showAddWorkoutSheet = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 List {
-                    Section("Create Workout") {
-                        TextField("Workout name", text: $newWorkoutName)
-                        Button("Add") {
-                            Task {
-                                await controller.addWorkout(name: newWorkoutName, notes: nil)
-                                newWorkoutName = ""
+                    if controller.workouts.isEmpty {
+                        ContentUnavailableView(
+                            "No Workouts Yet",
+                            systemImage: "dumbbell",
+                            description: Text("Tap + to create your first workout.")
+                        )
+                        .listRowBackground(Color.clear)
+                    } else {
+                        Section {
+                            ForEach(controller.workouts) { workout in
+                                NavigationLink(workout.name) {
+                                    WorkoutDetailView(workout: workout, controller: controller)
+                                }
                             }
-                        }
-                    }
-
-                    ForEach(controller.workouts) { workout in
-                        NavigationLink(workout.name) {
-                            WorkoutDetailView(workout: workout, controller: controller)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        Task {
-                            for index in indexSet {
-                                await controller.removeWorkout(id: controller.workouts[index].id)
+                            .onDelete { indexSet in
+                                Task {
+                                    for index in indexSet {
+                                        await controller.removeWorkout(id: controller.workouts[index].id)
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
-                .background(LinearGradient(colors: [.cyan.opacity(0.2), .indigo.opacity(0.25)], startPoint: .top, endPoint: .bottom))
+                .background(Color(uiColor: .systemGroupedBackground))
 
                 Button {
                     showAddWorkoutSheet = true
@@ -43,9 +44,9 @@ struct WorkoutsView: View {
                         .font(.title2.bold())
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
-                        .background(Color.accentColor)
+                        .background(Color.accentColor.gradient)
                         .clipShape(Circle())
-                        .shadow(radius: 4)
+                        .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
                 }
                 .padding(.trailing, 20)
                 .padding(.bottom, 20)
@@ -55,6 +56,7 @@ struct WorkoutsView: View {
             .task { await controller.loadWorkouts() }
             .sheet(isPresented: $showAddWorkoutSheet) {
                 AddWorkoutSheet(controller: controller)
+                    .presentationDetents([.medium])
             }
         }
     }

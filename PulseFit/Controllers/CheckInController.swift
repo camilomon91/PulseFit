@@ -28,6 +28,10 @@ final class CheckInController: ObservableObject {
         setStartTimes[exerciseId] = Date()
     }
 
+    func endRest(exerciseId: UUID) {
+        lastSetCompletionByExercise[exerciseId] = nil
+    }
+
     func completeSet(exerciseId: UUID, setNumber: Int, reps: Int, weightKg: Double) async {
         guard let checkInId = activeCheckIn?.id else { return }
         let startedAt = setStartTimes[exerciseId] ?? Date()

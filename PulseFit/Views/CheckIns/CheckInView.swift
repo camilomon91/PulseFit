@@ -36,7 +36,9 @@ struct CheckInView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .glassCard()
+                .padding(.horizontal, 2)
+                .padding(.vertical, 2)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
                 if controller.activeCheckIn == nil {
                     Button("Start Check-In") {
@@ -86,7 +88,9 @@ struct CheckInView: View {
                     .font(.headline)
             }
         }
-        .glassCard()
+        .padding(.horizontal, 2)
+                .padding(.vertical, 2)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private func macroPill(label: String, value: Int, color: Color) -> some View {
@@ -205,9 +209,17 @@ private struct ActiveWorkoutView: View {
                             }
 
                             if let restElapsed {
-                                Label("Rest elapsed: \(formattedClock(restElapsed))", systemImage: "timer")
+                                HStack {
+                                    Label("Rest elapsed: \(formattedClock(restElapsed))", systemImage: "timer")
+                                        .font(.caption)
+                                        .foregroundStyle(.orange)
+                                    Spacer()
+                                    Button("End Rest") {
+                                        controller.endRest(exerciseId: exercise.id)
+                                    }
                                     .font(.caption)
-                                    .foregroundStyle(.orange)
+                                    .buttonStyle(.bordered)
+                                }
                             }
                         }
                     }
@@ -218,7 +230,9 @@ private struct ActiveWorkoutView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .glassCard()
+                .padding(.horizontal, 2)
+                .padding(.vertical, 2)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .listRowBackground(Color.clear)
             }
             .scrollContentBackground(.hidden)
