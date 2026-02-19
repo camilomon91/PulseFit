@@ -46,6 +46,7 @@ final class CheckInController: ObservableObject {
                 restSeconds: max(rest, 0)
             )
             lastSetCompletionByExercise[exerciseId] = completedAt
+            setStartTimes[exerciseId] = nil
             setLogs = try await dataService.fetchSetLogs(checkInId: checkInId)
         } catch {
             errorMessage = error.localizedDescription
@@ -57,6 +58,8 @@ final class CheckInController: ObservableObject {
         do {
             try await dataService.finishCheckIn(checkInId: checkInId)
             activeCheckIn = nil
+            setStartTimes = [:]
+            lastSetCompletionByExercise = [:]
             await loadHistory()
         } catch {
             errorMessage = error.localizedDescription

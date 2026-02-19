@@ -192,6 +192,26 @@ private struct ActiveWorkoutView: View {
                     }
                     .buttonStyle(.borderedProminent)
 
+                    TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                        let now = timeline.date
+                        let setElapsed = elapsedSince(controller.setStartTimes[exercise.id], now: now)
+                        let restElapsed = elapsedSince(controller.lastSetCompletionByExercise[exercise.id], now: now)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let setElapsed {
+                                Label("Set elapsed: \(formattedClock(setElapsed))", systemImage: "stopwatch")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+
+                            if let restElapsed {
+                                Label("Rest elapsed: \(formattedClock(restElapsed))", systemImage: "timer")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                    }
+
                     ForEach(controller.setLogs.filter { $0.exerciseId == exercise.id }) { set in
                         Text("Set \(set.setNumber): \(set.reps) reps @ \(set.weightKg, specifier: "%.1f")kg · duration \(set.setDurationSeconds)s · rest \(set.restSeconds)s")
                             .font(.caption)
@@ -205,6 +225,18 @@ private struct ActiveWorkoutView: View {
         } else {
             Text("No exercises found for this workout.")
         }
+    }
+
+
+    private func elapsedSince(_ date: Date?, now: Date) -> Int? {
+        guard let date else { return nil }
+        return max(0, Int(now.timeIntervalSince(date)))
+    }
+
+    private func formattedClock(_ seconds: Int) -> String {
+        let minutes = seconds / 60
+        let remaining = seconds % 60
+        return String(format: "%02d:%02d", minutes, remaining)
     }
 
     private func parseInt(_ value: String?, fallback: Int) -> Int {
