@@ -4,6 +4,19 @@ import Supabase
 final class DataService {
     private let client = SupabaseService.shared.client
 
+    private enum MealFatColumn {
+        case fat
+        case fats
+    }
+
+    private enum MealLogTimestampColumn {
+        case consumedAt
+        case eatenAt
+    }
+
+    private var mealFatColumn: MealFatColumn = .fat
+    private var mealLogTimestampColumn: MealLogTimestampColumn = .consumedAt
+
     private static let iso8601: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -148,15 +161,6 @@ final class DataService {
 
     @discardableResult
     func createMeal(name: String, calories: Int, protein: Int, carbs: Int, fat: Int) async throws -> Meal {
-        struct PayloadWithFats: Encodable {
-            let user_id: UUID
-            let name: String
-            let calories: Int
-            let protein: Int
-            let carbs: Int
-            let fats: Int
-        }
-
         struct PayloadWithFat: Encodable {
             let user_id: UUID
             let name: String
@@ -166,9 +170,53 @@ final class DataService {
             let fat: Int
         }
 
+        struct PayloadWithFats: Encodable {
+            let user_id: UUID
+            let name: String
+            let calories: Int
+            let protein: Int
+            let carbs: Int
+            let fats: Int
+        }
+
         let uid = try await userId()
 
-        do {
+        switch mealFatColumn {
+        case .fat:
+            do {
+                return try await client
+                    .from("meals")
+                    .insert(PayloadWithFat(
+                        user_id: uid,
+                        name: name,
+                        calories: calories,
+                        protein: protein,
+                        carbs: carbs,
+                        fat: fat
+                    ))
+                    .select()
+                    .single()
+                    .execute()
+                    .value
+            } catch {
+                guard Self.isMissingColumnError(error, columnName: "fat") else { throw error }
+                mealFatColumn = .fats
+                return try await client
+                    .from("meals")
+                    .insert(PayloadWithFats(
+                        user_id: uid,
+                        name: name,
+                        calories: calories,
+                        protein: protein,
+                        carbs: carbs,
+                        fats: fat
+                    ))
+                    .select()
+                    .single()
+                    .execute()
+                    .value
+            }
+        case .fats:
             return try await client
                 .from("meals")
                 .insert(PayloadWithFats(
@@ -178,21 +226,6 @@ final class DataService {
                     protein: protein,
                     carbs: carbs,
                     fats: fat
-                ))
-                .select()
-                .single()
-                .execute()
-                .value
-        } catch {
-            return try await client
-                .from("meals")
-                .insert(PayloadWithFat(
-                    user_id: uid,
-                    name: name,
-                    calories: calories,
-                    protein: protein,
-                    carbs: carbs,
-                    fat: fat
                 ))
                 .select()
                 .single()
@@ -221,7 +254,38 @@ final class DataService {
 
         let uid = try await userId()
 
-        do {
+        switch mealFatColumn {
+        case .fat:
+            do {
+                try await client
+                    .from("meals")
+                    .update(UpdateWithFat(
+                        name: meal.name,
+                        calories: meal.calories,
+                        protein: meal.protein,
+                        carbs: meal.carbs,
+                        fat: meal.fat
+                    ))
+                    .eq("id", value: meal.id)
+                    .eq("user_id", value: uid)
+                    .execute()
+            } catch {
+                guard Self.isMissingColumnError(error, columnName: "fat") else { throw error }
+                mealFatColumn = .fats
+                try await client
+                    .from("meals")
+                    .update(UpdateWithFats(
+                        name: meal.name,
+                        calories: meal.calories,
+                        protein: meal.protein,
+                        carbs: meal.carbs,
+                        fats: meal.fat
+                    ))
+                    .eq("id", value: meal.id)
+                    .eq("user_id", value: uid)
+                    .execute()
+            }
+        case .fats:
             try await client
                 .from("meals")
                 .update(UpdateWithFats(
@@ -230,19 +294,6 @@ final class DataService {
                     protein: meal.protein,
                     carbs: meal.carbs,
                     fats: meal.fat
-                ))
-                .eq("id", value: meal.id)
-                .eq("user_id", value: uid)
-                .execute()
-        } catch {
-            try await client
-                .from("meals")
-                .update(UpdateWithFat(
-                    name: meal.name,
-                    calories: meal.calories,
-                    protein: meal.protein,
-                    carbs: meal.carbs,
-                    fat: meal.fat
                 ))
                 .eq("id", value: meal.id)
                 .eq("user_id", value: uid)
@@ -342,36 +393,50 @@ final class DataService {
     }
 
     func logMealConsumption(mealId: UUID, consumedAt: Date = Date()) async throws {
-        struct PayloadWithEatenAt: Encodable {
-            let user_id: UUID
-            let meal_id: UUID
-            let eaten_at: String
-        }
-
         struct PayloadWithConsumedAt: Encodable {
             let user_id: UUID
             let meal_id: UUID
             let consumed_at: String
         }
 
+        struct PayloadWithEatenAt: Encodable {
+            let user_id: UUID
+            let meal_id: UUID
+            let eaten_at: String
+        }
+
         let uid = try await userId()
 
-        do {
+        switch mealLogTimestampColumn {
+        case .consumedAt:
+            do {
+                try await client
+                    .from("meal_logs")
+                    .insert(PayloadWithConsumedAt(
+                        user_id: uid,
+                        meal_id: mealId,
+                        consumed_at: Self.iso8601.string(from: consumedAt)
+                    ))
+                    .execute()
+            } catch {
+                guard Self.isMissingColumnError(error, columnName: "consumed_at") else { throw error }
+                mealLogTimestampColumn = .eatenAt
+                try await client
+                    .from("meal_logs")
+                    .insert(PayloadWithEatenAt(
+                        user_id: uid,
+                        meal_id: mealId,
+                        eaten_at: Self.iso8601.string(from: consumedAt)
+                    ))
+                    .execute()
+            }
+        case .eatenAt:
             try await client
                 .from("meal_logs")
                 .insert(PayloadWithEatenAt(
                     user_id: uid,
                     meal_id: mealId,
                     eaten_at: Self.iso8601.string(from: consumedAt)
-                ))
-                .execute()
-        } catch {
-            try await client
-                .from("meal_logs")
-                .insert(PayloadWithConsumedAt(
-                    user_id: uid,
-                    meal_id: mealId,
-                    consumed_at: Self.iso8601.string(from: consumedAt)
                 ))
                 .execute()
         }
@@ -384,7 +449,24 @@ final class DataService {
             .from("meal_logs")
             .select()
             .eq("user_id", value: uid)
-                        .execute()
+            .execute()
             .value
+    }
+
+    func fetchCompletedCheckInsCount() async throws -> Int {
+        let uid = try await userId()
+        let checkIns: [GymCheckIn] = try await client
+            .from("gym_check_ins")
+            .select()
+            .eq("user_id", value: uid)
+            .execute()
+            .value
+
+        return checkIns.filter { $0.completedAt != nil }.count
+    }
+
+    private static func isMissingColumnError(_ error: Error, columnName: String) -> Bool {
+        let message = error.localizedDescription.lowercased()
+        return message.contains("column") && message.contains(columnName.lowercased())
     }
 }

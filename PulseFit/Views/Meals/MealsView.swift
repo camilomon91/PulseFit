@@ -10,6 +10,7 @@ struct MealsView: View {
     @State private var carbs = 40
     @State private var fat = 15
     @State private var showingError = false
+    @State private var loggingMealIds: Set<UUID> = []
 
     private var trimmedName: String {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -36,25 +37,38 @@ struct MealsView: View {
                 }
 
                 Section("Meals") {
-                    ForEach(controller.meals) { meal in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(meal.name)
-                                Text("\(meal.calories) kcal · P\(meal.protein) C\(meal.carbs) F\(meal.fat)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    if controller.meals.isEmpty {
+                        Text("No meals yet. Add your first meal above.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(controller.meals) { meal in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(meal.name)
+                                    Text("\(meal.calories) kcal · P\(meal.protein) C\(meal.carbs) F\(meal.fat)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Button(loggingMealIds.contains(meal.id) ? "Logging..." : "Log") {
+                                    Task {
+                                        loggingMealIds.insert(meal.id)
+                                        await controller.logMeal(mealId: meal.id)
+                                        if controller.errorMessage != nil {
+                                            checkInController.errorMessage = controller.errorMessage
+                                        }
+                                        loggingMealIds.remove(meal.id)
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(loggingMealIds.contains(meal.id))
                             }
-                            Spacer()
-                            Button("Log") {
-                                Task { await checkInController.logMeal(mealId: meal.id) }
-                            }
-                            .buttonStyle(.bordered)
                         }
-                    }
-                    .onDelete { indexSet in
-                        Task {
-                            for index in indexSet {
-                                await controller.removeMeal(id: controller.meals[index].id)
+                        .onDelete { indexSet in
+                            Task {
+                                for index in indexSet {
+                                    await controller.removeMeal(id: controller.meals[index].id)
+                                }
                             }
                         }
                     }
@@ -62,10 +76,11 @@ struct MealsView: View {
             }
             .navigationTitle("Meals")
             .task { await controller.loadMeals() }
+            .refreshable { await controller.loadMeals() }
             .onChange(of: controller.errorMessage) { _, newValue in
                 showingError = newValue != nil
             }
-            .alert("Couldn't Save Meal", isPresented: $showingError, presenting: controller.errorMessage) { _ in
+            .alert("Meals Error", isPresented: $showingError, presenting: controller.errorMessage) { _ in
                 Button("OK") {
                     controller.errorMessage = nil
                 }
