@@ -48,9 +48,16 @@ final class WorkoutController: ObservableObject {
     }
 
     func addExercise(workoutId: UUID, name: String, sets: Int, reps: Int) async {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Exercise name can't be empty."
+            return
+        }
+
         do {
-            try await dataService.addExercise(workoutId: workoutId, name: name, targetSets: sets, targetReps: reps)
+            try await dataService.addExercise(workoutId: workoutId, name: trimmedName, targetSets: sets, targetReps: reps)
             exercisesByWorkout[workoutId] = try await dataService.fetchExercises(workoutId: workoutId)
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }

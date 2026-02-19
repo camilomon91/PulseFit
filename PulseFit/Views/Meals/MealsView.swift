@@ -9,6 +9,11 @@ struct MealsView: View {
     @State private var protein = 30
     @State private var carbs = 40
     @State private var fat = 15
+    @State private var showingError = false
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,9 +27,12 @@ struct MealsView: View {
                     Button("Save Meal") {
                         Task {
                             await controller.addMeal(name: name, calories: calories, protein: protein, carbs: carbs, fat: fat)
-                            name = ""
+                            if controller.errorMessage == nil {
+                                name = ""
+                            }
                         }
                     }
+                    .disabled(trimmedName.isEmpty)
                 }
 
                 Section("Meals") {
@@ -54,6 +62,16 @@ struct MealsView: View {
             }
             .navigationTitle("Meals")
             .task { await controller.loadMeals() }
+            .onChange(of: controller.errorMessage) { _, newValue in
+                showingError = newValue != nil
+            }
+            .alert("Couldn't Save Meal", isPresented: $showingError, presenting: controller.errorMessage) { _ in
+                Button("OK") {
+                    controller.errorMessage = nil
+                }
+            } message: { message in
+                Text(message)
+            }
         }
     }
 }

@@ -7,6 +7,11 @@ struct WorkoutDetailView: View {
     @State private var exerciseName = ""
     @State private var sets = 3
     @State private var reps = 10
+    @State private var showingError = false
+
+    private var trimmedExerciseName: String {
+        exerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
         List {
@@ -17,9 +22,12 @@ struct WorkoutDetailView: View {
                 Button("Add Exercise") {
                     Task {
                         await controller.addExercise(workoutId: workout.id, name: exerciseName, sets: sets, reps: reps)
-                        exerciseName = ""
+                        if controller.errorMessage == nil {
+                            exerciseName = ""
+                        }
                     }
                 }
+                .disabled(trimmedExerciseName.isEmpty)
             }
 
             Section("Exercises") {
@@ -40,5 +48,15 @@ struct WorkoutDetailView: View {
             }
         }
         .navigationTitle(workout.name)
+        .onChange(of: controller.errorMessage) { _, newValue in
+            showingError = newValue != nil
+        }
+        .alert("Couldn't Add Exercise", isPresented: $showingError, presenting: controller.errorMessage) { _ in
+            Button("OK") {
+                controller.errorMessage = nil
+            }
+        } message: { message in
+            Text(message)
+        }
     }
 }

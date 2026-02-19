@@ -17,9 +17,16 @@ final class MealController: ObservableObject {
     }
 
     func addMeal(name: String, calories: Int, protein: Int, carbs: Int, fat: Int) async {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Meal name can't be empty."
+            return
+        }
+
         do {
-            try await dataService.createMeal(name: name, calories: calories, protein: protein, carbs: carbs, fat: fat)
+            try await dataService.createMeal(name: trimmedName, calories: calories, protein: protein, carbs: carbs, fat: fat)
             await loadMeals()
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
