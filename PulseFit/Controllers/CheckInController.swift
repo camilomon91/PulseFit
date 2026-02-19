@@ -70,14 +70,6 @@ final class CheckInController: ObservableObject {
         }
     }
 
-    func logMeal(mealId: UUID) async {
-        do {
-            try await dataService.logMealConsumption(mealId: mealId)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
     func loadSetLogs(checkInId: UUID) async {
         do {
             setLogs = try await dataService.fetchSetLogs(checkInId: checkInId)

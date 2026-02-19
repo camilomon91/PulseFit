@@ -38,24 +38,25 @@ struct CheckInView: View {
                 .pickerStyle(.menu)
                 .padding(.horizontal, 2)
                 .padding(.vertical, 2)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .neonCard()
 
                 if controller.activeCheckIn == nil {
                     Button("Start Check-In") {
                         guard let selectedWorkoutId else { return }
                         Task { await controller.startCheckIn(workoutId: selectedWorkoutId) }
                     }
-                    .buttonStyle(.borderedProminent)
+                    .neonPrimaryButton()
                 } else {
                     ActiveWorkoutView(workoutController: workoutController, controller: controller)
                     Button("Finish Session") { Task { await controller.finishCheckIn() } }
-                        .buttonStyle(.borderedProminent)
+                        .neonPrimaryButton()
                 }
 
                 Spacer()
             }
             .padding()
             .navigationTitle("Gym")
+            .neonScreenBackground()
             .task {
                 await workoutController.loadWorkouts()
                 await controller.loadHistory()
@@ -90,7 +91,7 @@ struct CheckInView: View {
         }
         .padding(.horizontal, 2)
                 .padding(.vertical, 2)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .neonCard()
     }
 
     private func macroPill(label: String, value: Int, color: Color) -> some View {
@@ -232,7 +233,7 @@ private struct ActiveWorkoutView: View {
                 }
                 .padding(.horizontal, 2)
                 .padding(.vertical, 2)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .neonCard()
                 .listRowBackground(Color.clear)
             }
             .scrollContentBackground(.hidden)

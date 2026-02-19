@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct AuthView: View {
     @ObservedObject var authController: AuthController
@@ -27,11 +26,17 @@ struct AuthView: View {
                     }
 
                     HStack(spacing: 12) {
-                        Button("Sign In") { Task { await authController.signIn() } }
-                            .neonPrimaryButton()
+                        Button(authController.isLoading ? "Signing In..." : "Sign In") {
+                            Task { await authController.signIn() }
+                        }
+                        .disabled(authController.isLoading)
+                        .neonPrimaryButton()
 
-                        Button("Sign Up") { Task { await authController.signUp() } }
-                            .neonSecondaryButton()
+                        Button("Sign Up") {
+                            Task { await authController.signUp() }
+                        }
+                        .disabled(authController.isLoading)
+                        .neonSecondaryButton()
                     }
                 }
                 .neonCard()

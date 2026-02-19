@@ -14,7 +14,7 @@ struct ProgressDashboardView: View {
                 VStack(spacing: 12) {
                     metricCard(title: "Workouts Completed", value: "\(controller.snapshot.workoutsCompleted)", icon: "checkmark.circle.fill")
                     metricCard(title: "Sets Logged", value: "\(controller.snapshot.setsLogged)", icon: "list.number")
-                    metricCard(title: "Volume", value: "\(controller.snapshot.totalVolumeKg, default: "%.0f") kg", icon: "scalemass")
+                    metricCard(title: "Volume", value: String(format: "%.0f kg", controller.snapshot.totalVolumeKg), icon: "scalemass")
                     metricCard(title: "Meals Tracked", value: "\(controller.snapshot.mealsLogged)", icon: "fork.knife.circle")
 
                     calendarCard
@@ -174,12 +174,14 @@ struct ProgressDashboardView: View {
         var days: [CalendarCellDay] = []
         var current = gridStart
 
+        var index = 0
         while current < gridEnd {
             if calendar.isDate(current, equalTo: month, toGranularity: .month) {
-                days.append(CalendarCellDay(date: current))
+                days.append(CalendarCellDay(id: index, date: current))
             } else {
-                days.append(CalendarCellDay(date: nil))
+                days.append(CalendarCellDay(id: index, date: nil))
             }
+            index += 1
             current = calendar.date(byAdding: .day, value: 1, to: current) ?? current
         }
 
@@ -188,7 +190,7 @@ struct ProgressDashboardView: View {
 }
 
 private struct CalendarCellDay: Identifiable {
-    let id = UUID()
+    let id: Int
     let date: Date?
 }
 

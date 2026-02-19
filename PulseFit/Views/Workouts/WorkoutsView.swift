@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct WorkoutsView: View {
     @ObservedObject var controller: WorkoutController

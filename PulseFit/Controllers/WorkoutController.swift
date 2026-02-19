@@ -11,10 +11,25 @@ final class WorkoutController: ObservableObject {
 
     func loadWorkouts() async {
         do {
-            workouts = try await dataService.fetchWorkouts()
-            for workout in workouts {
-                exercisesByWorkout[workout.id] = try await dataService.fetchExercises(workoutId: workout.id)
+            let fetchedWorkouts = try await dataService.fetchWorkouts()
+            var fetchedExercisesByWorkout: [UUID: [Exercise]] = [:]
+
+            try await withThrowingTaskGroup(of: (UUID, [Exercise]).self) { group in
+                for workout in fetchedWorkouts {
+                    group.addTask { [dataService] in
+                        let exercises = try await dataService.fetchExercises(workoutId: workout.id)
+                        return (workout.id, exercises)
+                    }
+                }
+
+                for try await (workoutId, exercises) in group {
+                    fetchedExercisesByWorkout[workoutId] = exercises
+                }
             }
+
+            workouts = fetchedWorkouts
+            exercisesByWorkout = fetchedExercisesByWorkout
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }

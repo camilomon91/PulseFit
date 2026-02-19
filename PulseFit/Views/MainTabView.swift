@@ -1,8 +1,15 @@
 import SwiftUI
-import Combine
 
 struct MainTabView: View {
     @ObservedObject var appController: AppController
+
+    private let tabs: [TabItem] = [
+        TabItem(index: 0, title: "Gym", systemImage: "figure.strengthtraining.traditional"),
+        TabItem(index: 1, title: "Workouts", systemImage: "dumbbell.fill"),
+        TabItem(index: 2, title: "Meals", systemImage: "fork.knife"),
+        TabItem(index: 3, title: "Progress", systemImage: "chart.xyaxis.line"),
+        TabItem(index: 4, title: "Account", systemImage: "person.crop.circle")
+    ]
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -27,7 +34,7 @@ struct MainTabView: View {
             .neonScreenBackground()
             .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 84) }
 
-            NeonTabBar(selected: $appController.selectedTab) {
+            NeonTabBar(selected: $appController.selectedTab, tabs: tabs) {
                 // Center action – feel free to change (e.g., open add-workout sheet)
                 appController.selectedTab = 0
             }
@@ -38,12 +45,13 @@ struct MainTabView: View {
 
 private struct NeonTabBar: View {
     @Binding var selected: Int
+    let tabs: [TabItem]
     var centerAction: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
-            tabButton(index: 0, title: "Gym", system: "figure.strengthtraining.traditional")
-            tabButton(index: 1, title: "Workouts", system: "dumbbell.fill")
+            tabButton(tabs[0])
+            tabButton(tabs[1])
 
             Spacer(minLength: 0)
 
@@ -63,9 +71,9 @@ private struct NeonTabBar: View {
 
             Spacer(minLength: 0)
 
-            tabButton(index: 2, title: "Meals", system: "fork.knife")
-            tabButton(index: 3, title: "Progress", system: "chart.xyaxis.line")
-            tabButton(index: 4, title: "Account", system: "person.crop.circle")
+            tabButton(tabs[2])
+            tabButton(tabs[3])
+            tabButton(tabs[4])
         }
         .padding(.horizontal, 12)
         .padding(.top, 14)
@@ -82,20 +90,26 @@ private struct NeonTabBar: View {
         .padding(.bottom, 10)
     }
 
-    private func tabButton(index: Int, title: String, system: String) -> some View {
+    private func tabButton(_ tab: TabItem) -> some View {
         Button {
-            selected = index
+            selected = tab.index
         } label: {
             VStack(spacing: 6) {
-                Image(systemName: system)
+                Image(systemName: tab.systemImage)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(selected == index ? Neon.neon : Color.white.opacity(0.65))
-                Text(title)
+                    .foregroundStyle(selected == tab.index ? Neon.neon : Color.white.opacity(0.65))
+                Text(tab.title)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(selected == index ? Color.white : Color.white.opacity(0.65))
+                    .foregroundStyle(selected == tab.index ? Color.white : Color.white.opacity(0.65))
             }
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }
+}
+
+private struct TabItem {
+    let index: Int
+    let title: String
+    let systemImage: String
 }
