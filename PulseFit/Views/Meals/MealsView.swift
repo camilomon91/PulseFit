@@ -16,6 +16,17 @@ struct MealsView: View {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var mealsById: [UUID: Meal] {
+        Dictionary(uniqueKeysWithValues: controller.meals.map { ($0.id, $0) })
+    }
+
+    private var groupedMealLogs: [(day: Date, logs: [MealLog])] {
+        let grouped = Dictionary(grouping: controller.mealLogs) { Calendar.current.startOfDay(for: $0.consumedAt) }
+        return grouped
+            .map { ($0.key, $0.value.sorted { $0.consumedAt > $1.consumedAt }) }
+            .sorted { $0.day > $1.day }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -68,6 +79,35 @@ struct MealsView: View {
                             Task {
                                 for index in indexSet {
                                     await controller.removeMeal(id: controller.meals[index].id)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section("Eaten Meals") {
+                    if groupedMealLogs.isEmpty {
+                        Text("No meal history yet. Tap Log on a meal to track it.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(groupedMealLogs, id: \.day) { group in
+                            DisclosureGroup(group.day.formatted(date: .abbreviated, time: .omitted)) {
+                                ForEach(group.logs) { log in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        let meal = mealsById[log.mealId]
+                                        Text(meal?.name ?? "Deleted meal")
+                                            .font(.headline)
+                                        Text(log.consumedAt.formatted(date: .omitted, time: .shortened))
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+
+                                        if let meal {
+                                            Text("\(meal.calories) kcal · Protein \(meal.protein)g · Carbs \(meal.carbs)g · Fat \(meal.fat)g")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
                                 }
                             }
                         }
