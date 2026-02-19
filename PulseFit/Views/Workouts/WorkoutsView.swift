@@ -34,38 +34,55 @@ struct WorkoutsView: View {
                     } else {
                         VStack(spacing: 10) {
                             ForEach(filtered) { workout in
-                                NavigationLink {
-                                    WorkoutDetailView(workout: workout, controller: controller)
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        Circle()
-                                            .fill(Neon.neon.opacity(0.18))
-                                            .overlay(
-                                                Image(systemName: "figure.strengthtraining.traditional")
-                                                    .font(.system(size: 14, weight: .bold))
-                                                    .foregroundStyle(Neon.neon)
-                                            )
-                                            .frame(width: 36, height: 36)
+                                HStack(spacing: 10) {
+                                    NavigationLink {
+                                        WorkoutDetailView(workout: workout, controller: controller)
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Circle()
+                                                .fill(Neon.neon.opacity(0.18))
+                                                .overlay(
+                                                    Image(systemName: "figure.strengthtraining.traditional")
+                                                        .font(.system(size: 14, weight: .bold))
+                                                        .foregroundStyle(Neon.neon)
+                                                )
+                                                .frame(width: 36, height: 36)
 
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(workout.name)
-                                                .font(.headline)
-                                                .foregroundStyle(Color.white)
-                                            Text("Tap to view exercises")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(workout.name)
+                                                    .font(.headline)
+                                                    .foregroundStyle(Color.white)
+                                                Text("Tap to view exercises")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
+
+                                            Spacer()
+
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundStyle(Color.white.opacity(0.45))
                                         }
-
-                                        Spacer()
-
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 13, weight: .semibold))
-                                            .foregroundStyle(Color.white.opacity(0.45))
+                                        .contentShape(Rectangle())
                                     }
-                                    .contentShape(Rectangle())
-                                    .neonCard()
+                                    .buttonStyle(.plain)
+
+                                    Button {
+                                        Task { await controller.removeWorkout(id: workout.id) }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(.red)
+                                            .frame(width: 36, height: 36)
+                                            .background(
+                                                Circle()
+                                                    .fill(Color.red.opacity(0.12))
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel("Delete \(workout.name)")
                                 }
-                                .buttonStyle(.plain)
+                                .neonCard()
                             }
                         }
                         .padding(.top, 2)
