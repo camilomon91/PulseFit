@@ -34,8 +34,7 @@ struct Exercise: Codable, Identifiable, Hashable {
     var name: String
     var targetSets: Int
     var targetReps: Int
-    var notes: String?
-    var sortOrder: Int
+    let createdAt: Date?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -43,8 +42,7 @@ struct Exercise: Codable, Identifiable, Hashable {
         case name
         case targetSets = "target_sets"
         case targetReps = "target_reps"
-        case notes
-        case sortOrder = "sort_order"
+        case createdAt = "created_at"
     }
 }
 
@@ -66,7 +64,33 @@ struct Meal: Codable, Identifiable, Hashable {
         case protein
         case carbs
         case fat
+        case fats
         case createdAt = "created_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        name = try container.decode(String.self, forKey: .name)
+        calories = try container.decode(Int.self, forKey: .calories)
+        protein = try container.decode(Int.self, forKey: .protein)
+        carbs = try container.decode(Int.self, forKey: .carbs)
+        fat = try container.decodeIfPresent(Int.self, forKey: .fat)
+            ?? container.decode(Int.self, forKey: .fats)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(name, forKey: .name)
+        try container.encode(calories, forKey: .calories)
+        try container.encode(protein, forKey: .protein)
+        try container.encode(carbs, forKey: .carbs)
+        try container.encode(fat, forKey: .fats)
+        try container.encode(createdAt, forKey: .createdAt)
     }
 }
 
@@ -125,5 +149,23 @@ struct MealLog: Codable, Identifiable, Hashable {
         case userId = "user_id"
         case mealId = "meal_id"
         case consumedAt = "consumed_at"
+        case eatenAt = "eaten_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        mealId = try container.decode(UUID.self, forKey: .mealId)
+        consumedAt = try container.decodeIfPresent(Date.self, forKey: .consumedAt)
+            ?? container.decode(Date.self, forKey: .eatenAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(mealId, forKey: .mealId)
+        try container.encode(consumedAt, forKey: .eatenAt)
     }
 }

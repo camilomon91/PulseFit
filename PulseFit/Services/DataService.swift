@@ -78,12 +78,10 @@ final class DataService {
             .from("exercises")
             .select()
             .eq("workout_id", value: workoutId)
-            .order("sort_order", ascending: true)
             .execute()
             .value
     }
 
-    /// NOTE: Still client-side sort_order; for concurrency-safe ordering, move to an RPC.
     @discardableResult
     func addExercise(workoutId: UUID, name: String, targetSets: Int, targetReps: Int) async throws -> Exercise {
         struct Payload: Encodable {
@@ -91,16 +89,13 @@ final class DataService {
             let name: String
             let target_sets: Int
             let target_reps: Int
-            let sort_order: Int
         }
 
-        let current = try await fetchExercises(workoutId: workoutId)
         let payload = Payload(
             workout_id: workoutId,
             name: name,
             target_sets: targetSets,
-            target_reps: targetReps,
-            sort_order: current.count
+            target_reps: targetReps
         )
 
         return try await client
@@ -117,8 +112,6 @@ final class DataService {
             let name: String
             let target_sets: Int
             let target_reps: Int
-            let notes: String?
-            let sort_order: Int
         }
 
         try await client
@@ -126,9 +119,7 @@ final class DataService {
             .update(Update(
                 name: exercise.name,
                 target_sets: exercise.targetSets,
-                target_reps: exercise.targetReps,
-                notes: exercise.notes,
-                sort_order: exercise.sortOrder
+                target_reps: exercise.targetReps
             ))
             .eq("id", value: exercise.id)
             .execute()
@@ -157,7 +148,16 @@ final class DataService {
 
     @discardableResult
     func createMeal(name: String, calories: Int, protein: Int, carbs: Int, fat: Int) async throws -> Meal {
-        struct Payload: Encodable {
+        struct PayloadWithFats: Encodable {
+            let user_id: UUID
+            let name: String
+            let calories: Int
+            let protein: Int
+            let carbs: Int
+            let fats: Int
+        }
+
+        struct PayloadWithFat: Encodable {
             let user_id: UUID
             let name: String
             let calories: Int
@@ -167,24 +167,51 @@ final class DataService {
         }
 
         let uid = try await userId()
-        return try await client
-            .from("meals")
-            .insert(Payload(
-                user_id: uid,
-                name: name,
-                calories: calories,
-                protein: protein,
-                carbs: carbs,
-                fat: fat
-            ))
-            .select()
-            .single()
-            .execute()
-            .value
+
+        do {
+            return try await client
+                .from("meals")
+                .insert(PayloadWithFats(
+                    user_id: uid,
+                    name: name,
+                    calories: calories,
+                    protein: protein,
+                    carbs: carbs,
+                    fats: fat
+                ))
+                .select()
+                .single()
+                .execute()
+                .value
+        } catch {
+            return try await client
+                .from("meals")
+                .insert(PayloadWithFat(
+                    user_id: uid,
+                    name: name,
+                    calories: calories,
+                    protein: protein,
+                    carbs: carbs,
+                    fat: fat
+                ))
+                .select()
+                .single()
+                .execute()
+                .value
+        }
     }
 
+
     func updateMeal(_ meal: Meal) async throws {
-        struct Update: Encodable {
+        struct UpdateWithFats: Encodable {
+            let name: String
+            let calories: Int
+            let protein: Int
+            let carbs: Int
+            let fats: Int
+        }
+
+        struct UpdateWithFat: Encodable {
             let name: String
             let calories: Int
             let protein: Int
@@ -193,19 +220,36 @@ final class DataService {
         }
 
         let uid = try await userId()
-        try await client
-            .from("meals")
-            .update(Update(
-                name: meal.name,
-                calories: meal.calories,
-                protein: meal.protein,
-                carbs: meal.carbs,
-                fat: meal.fat
-            ))
-            .eq("id", value: meal.id)
-            .eq("user_id", value: uid)
-            .execute()
+
+        do {
+            try await client
+                .from("meals")
+                .update(UpdateWithFats(
+                    name: meal.name,
+                    calories: meal.calories,
+                    protein: meal.protein,
+                    carbs: meal.carbs,
+                    fats: meal.fat
+                ))
+                .eq("id", value: meal.id)
+                .eq("user_id", value: uid)
+                .execute()
+        } catch {
+            try await client
+                .from("meals")
+                .update(UpdateWithFat(
+                    name: meal.name,
+                    calories: meal.calories,
+                    protein: meal.protein,
+                    carbs: meal.carbs,
+                    fat: meal.fat
+                ))
+                .eq("id", value: meal.id)
+                .eq("user_id", value: uid)
+                .execute()
+        }
     }
+
 
     func deleteMeal(id: UUID) async throws {
         let uid = try await userId()
@@ -298,22 +342,41 @@ final class DataService {
     }
 
     func logMealConsumption(mealId: UUID, consumedAt: Date = Date()) async throws {
-        struct Payload: Encodable {
+        struct PayloadWithEatenAt: Encodable {
+            let user_id: UUID
+            let meal_id: UUID
+            let eaten_at: String
+        }
+
+        struct PayloadWithConsumedAt: Encodable {
             let user_id: UUID
             let meal_id: UUID
             let consumed_at: String
         }
 
         let uid = try await userId()
-        try await client
-            .from("meal_logs")
-            .insert(Payload(
-                user_id: uid,
-                meal_id: mealId,
-                consumed_at: Self.iso8601.string(from: consumedAt)
-            ))
-            .execute()
+
+        do {
+            try await client
+                .from("meal_logs")
+                .insert(PayloadWithEatenAt(
+                    user_id: uid,
+                    meal_id: mealId,
+                    eaten_at: Self.iso8601.string(from: consumedAt)
+                ))
+                .execute()
+        } catch {
+            try await client
+                .from("meal_logs")
+                .insert(PayloadWithConsumedAt(
+                    user_id: uid,
+                    meal_id: mealId,
+                    consumed_at: Self.iso8601.string(from: consumedAt)
+                ))
+                .execute()
+        }
     }
+
 
     func fetchMealLogs() async throws -> [MealLog] {
         let uid = try await userId()
@@ -321,8 +384,7 @@ final class DataService {
             .from("meal_logs")
             .select()
             .eq("user_id", value: uid)
-            .order("consumed_at", ascending: false)
-            .execute()
+                        .execute()
             .value
     }
 }
