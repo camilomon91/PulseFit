@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct MainTabView: View {
     @ObservedObject var appController: AppController

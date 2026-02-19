@@ -10,6 +10,8 @@
 		FEF302042F4620A800C8927F /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302032F4620A800C8927F /* Auth */; };
 		FEF302062F4620A800C8927F /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302052F4620A800C8927F /* PostgREST */; };
 		FEF302082F4620A800C8927F /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302072F4620A800C8927F /* Realtime */; };
+		FEF302AC2F46747500C8927F /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302AB2F46747500C8927F /* Storage */; };
+		FEF302AE2F46747500C8927F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FEF302AD2F46747500C8927F /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +31,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEF302AE2F46747500C8927F /* Supabase in Frameworks */,
+				FEF302AC2F46747500C8927F /* Storage in Frameworks */,
 				FEF302082F4620A800C8927F /* Realtime in Frameworks */,
 				FEF302062F4620A800C8927F /* PostgREST in Frameworks */,
 				FEF302042F4620A800C8927F /* Auth in Frameworks */,
@@ -77,6 +81,8 @@
 				FEF302032F4620A800C8927F /* Auth */,
 				FEF302052F4620A800C8927F /* PostgREST */,
 				FEF302072F4620A800C8927F /* Realtime */,
+				FEF302AB2F46747500C8927F /* Storage */,
+				FEF302AD2F46747500C8927F /* Supabase */,
 			);
 			productName = PulseFit;
 			productReference = FEF301F42F46203500C8927F /* PulseFit.app */;
@@ -372,6 +378,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Realtime;
+		};
+		FEF302AB2F46747500C8927F /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		FEF302AD2F46747500C8927F /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEF302022F4620A800C8927F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

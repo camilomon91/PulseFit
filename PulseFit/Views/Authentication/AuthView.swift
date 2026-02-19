@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct AuthView: View {
     @ObservedObject var authController: AuthController

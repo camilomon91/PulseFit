@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 struct ProgressSnapshot {
     let workoutsCompleted: Int
