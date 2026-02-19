@@ -6,16 +6,20 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $appController.selectedTab) {
+            CheckInView(
+                workoutController: appController.workoutController,
+                controller: appController.checkInController,
+                mealController: appController.mealController
+            )
+            .tabItem { Label("Gym", systemImage: "figure.strengthtraining.traditional") }
+            .tag(0)
+
             WorkoutsView(controller: appController.workoutController)
                 .tabItem { Label("Workouts", systemImage: "dumbbell.fill") }
-                .tag(0)
+                .tag(1)
 
             MealsView(controller: appController.mealController, checkInController: appController.checkInController)
                 .tabItem { Label("Meals", systemImage: "fork.knife") }
-                .tag(1)
-
-            CheckInView(workoutController: appController.workoutController, controller: appController.checkInController)
-                .tabItem { Label("Gym", systemImage: "figure.strengthtraining.traditional") }
                 .tag(2)
 
             ProgressDashboardView(controller: appController.progressController)

@@ -3,12 +3,32 @@ import SwiftUI
 struct CheckInView: View {
     @ObservedObject var workoutController: WorkoutController
     @ObservedObject var controller: CheckInController
+    @ObservedObject var mealController: MealController
 
     @State private var selectedWorkoutId: UUID?
+
+    private var todayMacros: MacroSummary {
+        mealController.macroSummary(for: mealController.logsForToday())
+    }
+
+    private var todaysWorkoutDuration: Int {
+        let calendar = Calendar.current
+        let sessionsToday = controller.checkInHistory.filter { calendar.isDateInToday($0.startedAt) }
+
+        let completed = sessionsToday.reduce(0) { total, checkIn in
+            guard let completedAt = checkIn.completedAt else { return total }
+            return total + max(0, Int(completedAt.timeIntervalSince(checkIn.startedAt)))
+        }
+
+        let active = controller.activeCheckIn.map { max(0, Int(Date().timeIntervalSince($0.startedAt))) } ?? 0
+        return completed + active
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
+                summaryCards
+
                 Picker("Workout", selection: $selectedWorkoutId) {
                     Text("Select workout").tag(UUID?.none)
                     ForEach(workoutController.workouts) { workout in
@@ -33,9 +53,66 @@ struct CheckInView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Gym Check-In")
-            .task { await workoutController.loadWorkouts() }
+            .navigationTitle("Gym")
+            .task {
+                await workoutController.loadWorkouts()
+                await controller.loadHistory()
+                await mealController.loadMeals()
+            }
         }
+    }
+
+    private var summaryCards: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Label("Today's Macros", systemImage: "fork.knife.circle")
+                Spacer()
+                Text("\(todayMacros.calories) kcal")
+                    .font(.headline)
+            }
+
+            HStack(spacing: 12) {
+                macroPill(label: "P", value: todayMacros.protein, color: .blue)
+                macroPill(label: "C", value: todayMacros.carbs, color: .orange)
+                macroPill(label: "F", value: todayMacros.fat, color: .pink)
+            }
+
+            Divider()
+
+            HStack {
+                Label("Workout Duration Today", systemImage: "timer")
+                Spacer()
+                Text(formatDuration(todaysWorkoutDuration))
+                    .font(.headline)
+            }
+        }
+        .glassCard()
+    }
+
+    private func macroPill(label: String, value: Int, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("\(value)g")
+                .font(.subheadline.bold())
+                .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(color.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func formatDuration(_ seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+
+        return "\(minutes)m"
     }
 }
 
@@ -43,28 +120,61 @@ private struct ActiveWorkoutView: View {
     @ObservedObject var workoutController: WorkoutController
     @ObservedObject var controller: CheckInController
 
-    @State private var repsByExercise: [UUID: Int] = [:]
-    @State private var weightByExercise: [UUID: Double] = [:]
+    @State private var repsInputByExercise: [UUID: String] = [:]
+    @State private var weightInputByExercise: [UUID: String] = [:]
 
     var body: some View {
         if let workoutId = controller.activeCheckIn?.workoutId,
            let exercises = workoutController.exercisesByWorkout[workoutId] {
             List(exercises) { exercise in
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(exercise.name).font(.headline)
-                    Stepper("Reps: \(repsByExercise[exercise.id, default: exercise.targetReps])", value: Binding(
-                        get: { repsByExercise[exercise.id, default: exercise.targetReps] },
-                        set: { repsByExercise[exercise.id] = $0 }
-                    ), in: 1...40)
+
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Reps").font(.caption).foregroundStyle(.secondary)
+                            TextField(
+                                "\(exercise.targetReps)",
+                                text: Binding(
+                                    get: { repsInputByExercise[exercise.id] ?? "\(exercise.targetReps)" },
+                                    set: { repsInputByExercise[exercise.id] = $0 }
+                                )
+                            )
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(.roundedBorder)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Weight (kg)").font(.caption).foregroundStyle(.secondary)
+                            TextField(
+                                "20",
+                                text: Binding(
+                                    get: { weightInputByExercise[exercise.id] ?? "20" },
+                                    set: { weightInputByExercise[exercise.id] = $0 }
+                                )
+                            )
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(.roundedBorder)
+                        }
+                    }
 
                     HStack {
-                        Text("Weight (kg)")
-                        TextField("0", value: Binding(
-                            get: { weightByExercise[exercise.id, default: 20] },
-                            set: { weightByExercise[exercise.id] = $0 }
-                        ), format: .number)
-                        .textFieldStyle(.roundedBorder)
+                        Button("-1 Rep") {
+                            let current = parseInt(repsInputByExercise[exercise.id], fallback: exercise.targetReps)
+                            repsInputByExercise[exercise.id] = "\(max(1, current - 1))"
+                        }
+
+                        Button("+1 Rep") {
+                            let current = parseInt(repsInputByExercise[exercise.id], fallback: exercise.targetReps)
+                            repsInputByExercise[exercise.id] = "\(current + 1)"
+                        }
+
+                        Button("+2.5kg") {
+                            let current = parseDouble(weightInputByExercise[exercise.id], fallback: 20)
+                            weightInputByExercise[exercise.id] = String(format: "%.1f", current + 2.5)
+                        }
                     }
+                    .buttonStyle(.bordered)
 
                     HStack {
                         Button("Start Set") { controller.beginSet(exerciseId: exercise.id) }
@@ -74,13 +184,13 @@ private struct ActiveWorkoutView: View {
                                 await controller.completeSet(
                                     exerciseId: exercise.id,
                                     setNumber: count,
-                                    reps: repsByExercise[exercise.id, default: exercise.targetReps],
-                                    weightKg: weightByExercise[exercise.id, default: 20]
+                                    reps: max(1, parseInt(repsInputByExercise[exercise.id], fallback: exercise.targetReps)),
+                                    weightKg: max(0, parseDouble(weightInputByExercise[exercise.id], fallback: 20))
                                 )
                             }
                         }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.borderedProminent)
 
                     ForEach(controller.setLogs.filter { $0.exerciseId == exercise.id }) { set in
                         Text("Set \(set.setNumber): \(set.reps) reps @ \(set.weightKg, specifier: "%.1f")kg · duration \(set.setDurationSeconds)s · rest \(set.restSeconds)s")
@@ -95,5 +205,15 @@ private struct ActiveWorkoutView: View {
         } else {
             Text("No exercises found for this workout.")
         }
+    }
+
+    private func parseInt(_ value: String?, fallback: Int) -> Int {
+        guard let value, let parsed = Int(value) else { return fallback }
+        return parsed
+    }
+
+    private func parseDouble(_ value: String?, fallback: Double) -> Double {
+        guard let value, let parsed = Double(value) else { return fallback }
+        return parsed
     }
 }

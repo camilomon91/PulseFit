@@ -29,7 +29,8 @@ final class AppController: ObservableObject {
     func refreshAll() async {
         async let workouts = workoutController.loadWorkouts()
         async let meals = mealController.loadMeals()
+        async let checkInHistory = checkInController.loadHistory()
         async let logs = progressController.loadData(mealController: mealController, checkInController: checkInController)
-        _ = await (workouts, meals, logs)
+        _ = await (workouts, meals, checkInHistory, logs)
     }
 }

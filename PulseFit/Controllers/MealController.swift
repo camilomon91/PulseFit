@@ -1,6 +1,13 @@
 import Foundation
 import Combine
 
+struct MacroSummary {
+    let calories: Int
+    let protein: Int
+    let carbs: Int
+    let fat: Int
+}
+
 @MainActor
 final class MealController: ObservableObject {
     @Published var meals: [Meal] = []
@@ -83,5 +90,31 @@ final class MealController: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func logsForToday() -> [MealLog] {
+        let calendar = Calendar.current
+        return mealLogs.filter { calendar.isDateInToday($0.consumedAt) }
+    }
+
+    func macroSummary(for logs: [MealLog]) -> MacroSummary {
+        let mealsById = Dictionary(uniqueKeysWithValues: meals.map { ($0.id, $0) })
+
+        let totals = logs.reduce((calories: 0, protein: 0, carbs: 0, fat: 0)) { partial, log in
+            guard let meal = mealsById[log.mealId] else { return partial }
+            return (
+                calories: partial.calories + meal.calories,
+                protein: partial.protein + meal.protein,
+                carbs: partial.carbs + meal.carbs,
+                fat: partial.fat + meal.fat
+            )
+        }
+
+        return MacroSummary(
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat
+        )
     }
 }

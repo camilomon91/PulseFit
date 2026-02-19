@@ -4,6 +4,7 @@ import Combine
 @MainActor
 final class CheckInController: ObservableObject {
     @Published var activeCheckIn: GymCheckIn?
+    @Published var checkInHistory: [GymCheckIn] = []
     @Published var setLogs: [ExerciseSetLog] = []
     @Published var setStartTimes: [UUID: Date] = [:]
     @Published var lastSetCompletionByExercise: [UUID: Date] = [:]
@@ -17,6 +18,7 @@ final class CheckInController: ObservableObject {
             setLogs = []
             setStartTimes = [:]
             lastSetCompletionByExercise = [:]
+            await loadHistory()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -55,6 +57,7 @@ final class CheckInController: ObservableObject {
         do {
             try await dataService.finishCheckIn(checkInId: checkInId)
             activeCheckIn = nil
+            await loadHistory()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -71,6 +74,14 @@ final class CheckInController: ObservableObject {
     func loadSetLogs(checkInId: UUID) async {
         do {
             setLogs = try await dataService.fetchSetLogs(checkInId: checkInId)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func loadHistory() async {
+        do {
+            checkInHistory = try await dataService.fetchCheckInHistory()
         } catch {
             errorMessage = error.localizedDescription
         }
